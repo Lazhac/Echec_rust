@@ -34,6 +34,7 @@ pub fn afficher_plateau (p: &Plateau){
 }
 
 
+// Test si pos fait partie des destinations de m_vec
 fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
     for m in m_vec {
         if pos == m.nouveau {return true;}
@@ -41,6 +42,8 @@ fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
     false
 }
 
+
+// Affiche le plateau p, en marquant les cases destination (nouveau) de deplacements 
 pub fn afficher_mouv (p: &Plateau, deplacements: &Vec<Move>){
     // 🆃🅲🅵🅳🆁 🅿 
     // Il n'y a pas de version minuscule, donc les lettres inversées 
@@ -84,3 +87,6 @@ pub fn afficher_mouv (p: &Plateau, deplacements: &Vec<Move>){
         print!(" {c}");
     }
 }
+
+
+

@@ -1,5 +1,6 @@
 use crate::structures::Plateau;
 
+// initialise un plateau de début de partie
 pub fn plateau_vide () -> Plateau{
     let mut p: Plateau = Plateau {
         carte: [[' '; 8]; 8],
@@ -16,3 +17,6 @@ pub fn plateau_vide () -> Plateau{
 
     p
 }
+
+
+

@@ -32,11 +32,17 @@ pub fn test_couleur_piece(){
     assert!(res==1); // attendu : 1
 }
 
+// test si pos est dans les limites de la carte
 fn dans_carte(pos: (isize,isize)) -> bool {
     pos.0 >= 0 && pos.0 < 8 && pos.1 >= 0 && pos.1 < 8 
 }
 
+// Renvoie l'adversaire de j
+fn autre_joueur (j: u32) -> u32 {
+    (1- (j as i32)) as u32
+}
 
+// Renvoie l'ensemble des moves possible par le cavalier en position pos.
 pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     mvt_tour(p, pos);
     assert!(p.carte[pos.0][pos.1] == 'c' || p.carte[pos.0][pos.1] == 'C');
@@ -66,11 +72,57 @@ pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
 }
 
 
+// Renvoie l'ensemble des moves possible par le fou en position pos.
+pub fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+    mvt_tour(p, pos);
+    assert!(p.carte[pos.0][pos.1] == 'f' || p.carte[pos.0][pos.1] == 'F');
+
+    let joueur = p.nb_tour % 2;
+
+    let mut res: Vec<Move> = Vec::with_capacity(8);
+
+    
+    for (signe_i, signe_j) in [(1, 1), (1, -1), (-1, 1), (-1, -1)]{    
+        for k in 1..8 {
+            if dans_carte(((pos.0 as isize) + (k*signe_i), (pos.1 as isize) + (k*signe_j))) {
+                if couleur_piece(p.carte[((pos.0 as isize)+(k*signe_i)) as usize][((pos.1 as isize)+(k*signe_j)) as usize]) == joueur {break;}
+                else if couleur_piece(p.carte[((pos.0 as isize)+(k*signe_i)) as usize][((pos.1 as isize)+(k*signe_j)) as usize]) == autre_joueur(joueur) {
+                    res.push(
+                        Move {
+                            joueur: joueur == 0,
+                            ancien: pos, // ancienne position
+                            nouveau: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize),// nouvelle position
+                            rock: (true, true),
+                            manger: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize), // position du pion mangé (surtout si en passant)
+                            en_passant: [true; 8],
+                        }
+                    );
+                    break;
+                }
+                else {
+                    res.push(
+                        Move {
+                            joueur: joueur == 0,
+                            ancien: pos, // ancienne position
+                            nouveau: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize),// nouvelle position
+                            rock: (true, true),
+                            manger: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize), // position du pion mangé (surtout si en passant)
+                            en_passant: [true; 8],
+                        }
+                    );
+                }
+            }
+        }   
+    }
+    res
+}
 
 
 
 
 
-//git commit -m "deplacement cavalier, affichage des deplacements possibles"
+
+
+
 
 

@@ -18,9 +18,9 @@ fn main() {
     let mut p: Plateau = divers::plateau_vide();
     afficher_plateau(&p);
 
-    p.carte[5][2] = 'c';
+    p.carte[5][1] = 'f';
 
-    let m_vec = mouvements::cavalier(&p, (5,2));
+    let m_vec = mouvements::fou(&p, (5,1));
     affichage::afficher_mouv(&p, &m_vec);
     
 }
