@@ -9,11 +9,11 @@ pub struct Plateau {
 //pion : 
 
 pub struct Move {
-    pub joueur: bool,
+    pub joueur: bool,   // true = blanc, false = noir 
     pub ancien: (usize,usize), // ancienne position
     pub nouveau: (usize,usize),// nouvelle position
-    pub rock: (bool, bool),
-    pub manger: (usize,usize), // position du pion mangé (surtout si en passant)
+    pub rock: (bool, bool), // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
+    pub manger: (usize,usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
     pub en_passant: [bool; 8],
 }
 
