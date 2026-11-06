@@ -86,6 +86,7 @@ pub fn afficher_mouv (p: &Plateau, deplacements: &Vec<Move>){
     for c in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] {
         print!(" {c}");
     }
+    println!("\n");
 }
 
 

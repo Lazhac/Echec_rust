@@ -1,7 +1,28 @@
 use crate::structures::Plateau;
 use crate::structures::Move;
 
-fn couleur_piece(c:char) -> u32 {
+pub fn mouv (p: &mut Plateau, m: Move){
+    if m.joueur {
+        p.en_passant_b = [false; 8];
+        p.en_passant_n = m.en_passant;
+        p.rock_b[0] = p.rock_b[0] && m.rock.0;
+        p.rock_b[1] = p.rock_b[1] && m.rock.1;
+    } else {
+        p.en_passant_n = [false; 8];
+        p.en_passant_b = m.en_passant;
+        p.rock_n[0] = p.rock_n[0] && m.rock.0;
+        p.rock_n[1] = p.rock_n[1] && m.rock.1;
+    }
+    p.nb_tour = p.nb_tour + 1;
+    p.carte[m.manger.0][m.manger.1] = ' ';
+    p.carte[m.nouveau.0][m.nouveau.1] = p.carte[m.ancien.0][m.ancien.1];
+    p.carte[m.ancien.0][m.ancien.1] = ' ';
+}
+
+
+
+
+pub fn couleur_piece(c:char) -> u32 {
     //renvoie 0 si c'est une pièce qui appartient au joueur blanc, 1 au joueur noir, 2 sinon
     if c == ' '{ //cas d'erreur - il n'y a pas de pion sur la case
         2
