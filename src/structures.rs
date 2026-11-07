@@ -1,18 +1,19 @@
-struct Plateau {
-    carte: [[char; 8]; 8], //blanc : minuscule - noir: majuscule
-    en_passant_b: [bool; 8],
-    en_passant_n: [bool; 8],
-    rock_b: [bool; 2],
-    rock_n: [bool; 2],
-    nb_tour: u32
+pub struct Plateau {
+    pub carte: [[char; 8]; 8], //blanc : minuscule - noir: majuscule
+    pub en_passant_b: [bool; 8],
+    pub en_passant_n: [bool; 8],
+    pub rock_b: [bool; 2], // true si un rock est possible
+    pub rock_n: [bool; 2],
+    pub nb_tour: u32,
 }
 //pion : 
 
-struct Move {
-    joueur: bool
-    ancien: (u8,u8), // ancienne position
-    nouveau: (u8,u8),// nouvelle position
-    rock: (bool, bool),
-    manger: (u8,u8), // position du pion mangé (surtout si en passant)
-    en_passant: [bool; 8]
+pub struct Move {
+    pub joueur: bool,   // true = blanc, false = noir 
+    pub ancien: (usize,usize), // ancienne position
+    pub nouveau: (usize,usize),// nouvelle position
+    pub rock: (bool, bool), // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
+    pub manger: (usize,usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
+    pub en_passant: [bool; 8],
 }
+
