@@ -1,9 +1,10 @@
 use crate::structures::Plateau;
 use crate::structures::Move;
+use crate::divers::conv_str_to_pos;
 
 pub fn mouv (p: &mut Plateau, m: Move){
-    if m.joueur {
-        p.en_passant_b = [false; 8];
+    if m.joueur { //si c'est au joueur blanc de jouer
+        p.en_passant_b = [false; 8]; // on ne peut faire en passant que immédiatement après avoir joué
         p.en_passant_n = m.en_passant;
         p.rock_b[0] = p.rock_b[0] && m.rock.0;
         p.rock_b[1] = p.rock_b[1] && m.rock.1;
@@ -35,23 +36,7 @@ pub fn couleur_piece(c:char) -> u32 {
     }
 }
 
-fn mvt_tour(plt: &Plateau, pos: (usize,usize)) {
-    let c = plt.carte[pos.0][pos.1];
-    assert!(couleur_piece(c) == (plt.nb_tour % 2)); //c'est le bon joueur qui joue
-}//pour connaître le joueur, on regarde le tour de jeu - si pair blanc, si impair noir
-
-//tests
-pub fn test_couleur_piece(){
-    let c1:char =' ';
-    let c2:char ='p';
-    let c3:char ='Q';
-    let mut res:u32 = couleur_piece(c1);
-    assert!(res==2); // attendu : 2
-    res = couleur_piece(c2);
-    assert!(res==0); // attendu : 0
-    res = couleur_piece(c3);
-    assert!(res==1); // attendu : 1
-}
+//pour connaître le joueur, on regarde le tour de jeu - si pair blanc, si impair noir
 
 // test si pos est dans les limites de la carte
 fn dans_carte(pos: (isize,isize)) -> bool {
@@ -65,8 +50,8 @@ fn autre_joueur (j: u32) -> u32 {
 
 // Renvoie l'ensemble des moves possible par le cavalier en position pos.
 pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
-    mvt_tour(p, pos);
     assert!(p.carte[pos.0][pos.1] == 'c' || p.carte[pos.0][pos.1] == 'C');
+    assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
 
     let joueur = p.nb_tour % 2;
 
@@ -78,12 +63,12 @@ pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
         && couleur_piece(p.carte[((pos.0 as isize)+i) as usize][((pos.1 as isize)+j) as usize]) != joueur {
             res.push(
                  Move {
-                    joueur: joueur == 0,
+                    joueur: joueur == 0, //pourquoi cette ligne ?
                     ancien: pos, // ancienne position
                     nouveau: (((pos.0 as isize)+i) as usize, ((pos.1 as isize)+j) as usize),// nouvelle position
                     rock: (true, true),
                     manger: (((pos.0 as isize)+i) as usize, ((pos.1 as isize)+j) as usize), // position du pion mangé (surtout si en passant)
-                    en_passant: [true; 8],
+                    en_passant: [true; 8], //pourquoi en passant à true ?
                 }
             );
         }
@@ -95,7 +80,7 @@ pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
 
 // Renvoie l'ensemble des moves possible par le fou en position pos.
 pub fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
-    mvt_tour(p, pos);
+    assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2));
     assert!(p.carte[pos.0][pos.1] == 'f' || p.carte[pos.0][pos.1] == 'F');
 
     let joueur = p.nb_tour % 2;
@@ -138,8 +123,75 @@ pub fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     res
 }
 
+pub fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+    let c = p.carte[pos.0][pos.1];
+    assert!(couleur_piece(c) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
+    assert!(p.carte[pos.0][pos.1] == 'c' || p.carte[pos.0][pos.1] == 'C');
 
+    let configs :[(isize,isize);4] = [(1,1),(1,-1),(-1,1),(-1,-1)];
+    let mut res: Vec<Move> = Vec::new();
+    let mut x:isize;
+    let mut y:isize;
 
+    //mise a jour du rock (on regarde juste si la tour est à son emplacement de départ)
+    let rock :(bool,bool) =
+    if (p.nb_tour % 2) == 0 {
+        if pos == conv_str_to_pos("A1".to_string()).unwrap() {(false,true)}
+        else if pos == conv_str_to_pos("H1".to_string()).unwrap() {(true,false)}
+        else {(true,true)}
+    }
+    else {
+        if pos == conv_str_to_pos("A8".to_string()).unwrap() {(false,true)}
+        else if pos == conv_str_to_pos("H8".to_string()).unwrap() {(true,false)}
+        else {(true,true)}
+    };
+
+    for (i,j) in configs { //on avance tant que l'on peut dans toutes les dirrections
+        x = (pos.0 as isize) + i;
+        y = (pos.1 as isize) + j;
+        while dans_carte((x,y)) && (p.carte[x as usize][y as usize] == ' ') { //tant qu'il sagt de cases vides
+            res.push (
+                    Move {
+                            joueur: (p.nb_tour % 2) == 0,   // true = blanc, false = noir 
+                            ancien: pos, // ancienne position
+                            nouveau: (x as usize,y as usize),// nouvelle position
+                            rock: rock, // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
+                            manger: (x as usize,y as usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
+                            en_passant: [false;8],
+                    }
+            );
+            x = x + i;
+            y = y + j;
+        // si on est sortis de la boucle et encore sur le plateau => on a rencontré un pion à manger (coup à ajouter)
+        if dans_carte((x,y)) {
+            res.push(
+                Move {
+                    joueur: (p.nb_tour % 2) == 0,
+                    ancien: pos,
+                    nouveau: (x as usize,y as usize),
+                    rock: rock,
+                    manger: (x as usize,y as usize),
+                    en_passant: [false;8]
+                }
+            )
+        }
+        }
+    }
+    return res;
+}
+
+//tests
+pub fn test_couleur_piece(){
+    let c1:char =' ';
+    let c2:char ='p';
+    let c3:char ='Q';
+    let mut res:u32 = couleur_piece(c1);
+    assert!(res==2); // attendu : 2
+    res = couleur_piece(c2);
+    assert!(res==0); // attendu : 0
+    res = couleur_piece(c3);
+    assert!(res==1); // attendu : 1
+}
 
 
 
