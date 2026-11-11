@@ -4,15 +4,26 @@ use crate::divers::conv_str_to_pos;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-static COUPS :LazyLock<HashMap<&str,fn(&Plateau,(usize,usize)) ->Vec<Move>>> = LazyLock::new(|| 
+pub static COUPS :LazyLock<HashMap<char,fn(&Plateau,(usize,usize)) ->Vec<Move>>> = LazyLock::new(|| 
     {
-        HashMap::from(
-            [('p',pion),('f',fou),('t',tour),('d',dame),('c',cavalier),('r',roi),
-            ('P',pion),('F',fou),('T',tour),('D',dame),('C',cavalier),('R',roi)]
-        )
+        HashMap::from([
+            ('t', tour as fn(&Plateau, (usize, usize)) -> Vec<Move>),
+            ('c', cavalier as _),
+            ('f', fou as _),
+            ('d', dame as _),
+            //('r', roi as _),
+            // ('p', pion as _),
+            ('T', tour as _),
+            ('C', cavalier as _),
+            ('F', fou as _),
+            ('D', dame as _),
+            // ('R', roi as _),
+            // ('P', pion as _),
+        ])
     }
     );
 
+// Applique simplement le coups, ne vérifie pas la victoire, l'égalité ou quoi que ce soit d'autre
 pub fn mouv (p: &mut Plateau, m: Move){
     if m.joueur { //si c'est au joueur blanc de jouer
         p.en_passant_b = [false; 8]; // on ne peut faire en passant que immédiatement après avoir joué
@@ -57,7 +68,7 @@ fn autre_joueur (j: u32) -> u32 {
 }
 
 // Renvoie l'ensemble des moves possible par le cavalier en position pos.
-pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     assert!(p.carte[pos.0][pos.1] == 'c' || p.carte[pos.0][pos.1] == 'C');
     assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
 
@@ -87,7 +98,7 @@ pub fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
 
 
 // Renvoie l'ensemble des moves possible par le fou en position pos.
-pub fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2));
     assert!(p.carte[pos.0][pos.1] == 'f' || p.carte[pos.0][pos.1] == 'F');
 
@@ -131,7 +142,7 @@ pub fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     res
 }
 
-pub fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let c = p.carte[pos.0][pos.1];
     assert!(couleur_piece(c) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
     assert!(p.carte[pos.0][pos.1] == 't' || p.carte[pos.0][pos.1] == 'T');
@@ -188,7 +199,7 @@ pub fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     return res;
 }
 
-pub fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let c = p.carte[pos.0][pos.1];
     assert!(couleur_piece(c) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
     assert!(p.carte[pos.0][pos.1] == 'd' || p.carte[pos.0][pos.1] == 'D');
@@ -234,7 +245,7 @@ pub fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     return res;
 }
 
-//récupère tout les pions sauf le roi
+//récupère tout les pions de joueur sauf le roi
 fn loc_pions_saufroi(p: &Plateau,joueur :u32) -> Vec<(usize,usize)> { 
     let mut res :Vec<(usize,usize)> = Vec::new();
     for x in 0..=7 {
@@ -249,8 +260,9 @@ fn loc_pions_saufroi(p: &Plateau,joueur :u32) -> Vec<(usize,usize)> {
     }
     res 
 }
+
 /* 
-pub fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let c = p.carte[pos.0][pos.1];
     let joueur = p.nb_tour % 2
     assert!(couleur_piece(c) == (joueur)); //c'est le bon joueur qui joue

@@ -8,6 +8,7 @@ pub struct Plateau {
 }
 //pion : 
 
+#[derive(Copy, Clone)]
 pub struct Move {
     pub joueur: bool,   // true = blanc, false = noir 
     pub ancien: (usize,usize), // ancienne position

@@ -34,14 +34,14 @@ pub fn conv_str_to_pos (pos_string: String) -> Option<(usize, usize)> {
         };
 
         let j: usize = 
-            if j_char == 'A' {0}
-            else if j_char == 'B' {1}
-            else if j_char == 'C' {2}
-            else if j_char == 'D' {3}
-            else if j_char == 'E' {4}
-            else if j_char == 'F' {5}
-            else if j_char == 'G' {6}
-            else if j_char == 'H' {7}
+            if j_char == 'A' || j_char == 'a' {0}
+            else if j_char == 'B' || j_char == 'b'  {1}
+            else if j_char == 'C' || j_char == 'c'  {2}
+            else if j_char == 'D' || j_char == 'd'  {3}
+            else if j_char == 'E' || j_char == 'e'  {4}
+            else if j_char == 'F' || j_char == 'f'  {5}
+            else if j_char == 'G' || j_char == 'g'  {6}
+            else if j_char == 'H' || j_char == 'h'  {7}
             else {10};
 
         if (i == 10) || (j == 10) {
