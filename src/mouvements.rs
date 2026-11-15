@@ -190,7 +190,7 @@ fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
             y = y + j;
         }
         // si on est sortis de la boucle et encore sur le plateau => on a rencontré un pion à manger (coup à ajouter)
-        if dans_carte((x,y)) {
+        if dans_carte((x,y)) && (couleur_piece(p.carte[x as usize][y as usize]) != (p.nb_tour % 2)) {
             res.push(
                 Move {
                     joueur: (p.nb_tour % 2) == 0,
@@ -240,7 +240,7 @@ fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
             y = y + j;
         }
         // si on est sortis de la boucle et encore sur le plateau => on a rencontré un pion à manger (coup à ajouter)
-        if dans_carte((x,y)) {
+        if dans_carte((x,y)) && (couleur_piece(p.carte[x as usize][y as usize]) != (p.nb_tour % 2)){
             res.push(
                 Move {
                     joueur: (p.nb_tour % 2) == 0,
@@ -378,7 +378,7 @@ fn loc_pions_saufroi(p: &Plateau,joueur :u32) -> Vec<(usize,usize)> {
     res 
 }
 
-/* 
+ 
 fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let c = p.carte[pos.0][pos.1];
     let joueur = p.nb_tour % 2
@@ -389,7 +389,7 @@ fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let positions :vec<(usize,usize)> = loc_pions_saufroi(p,autre_joueur(joueur));
     let adversaires :vec<Move> = Vec::new();
     for i in 0..position.len() {
-        adversaire.append()
+        adversaires.append(COUPS.get(p.carte[positions[i].0][position[i].1]).unwrap()(p,positions[i]))
     }
 
     let configs :[(isize,isize);8] = [(1,1),(1,-1),(-1,1),(-1,-1),(1,0),(0,1),(-1,0),(0,-1 )];
@@ -401,27 +401,87 @@ fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     for (i,j) in configs { //on avance tant que l'on peut dans toutes les dirrections
         x = (pos.0 as isize) + i;
         y = (pos.1 as isize) + j;
-        if dans_carte((x,y)) { //pas à se soucier de la présence ou non d'un pion 
+        if dans_carte((x,y)) && !(couleur_piece(p.carte[x as usize][y as usize]) == (p.nb_tour % 2)) { 
         res.push(
             Move {
                 joueur: joueur == 0,
                 ancien: pos,
                 nouveau: (x as usize,y as usize),
-                rock: (true,true),
+                rock: (false,false),
                 manger: (x as usize,y as usize),
-                en_passant: [false;8]
-            }
+                en_passant: [false;8],
+                promotion:false,
+                }
+            )
+        }
+    }
 
-        )
-        }
-        if (p.nb_tour % 2) == 0 {
-            if pos == conv_str_to_pos("E8".to_string()).unwrap() { // roi à la bonne place
-                if 
+        if (p.nb_tour % 2) == 0 { //
+            if (p.rock_n).0
+            && !(est_dans_mouv(conv_str_to_pos ("D1"),adversaires)) { // rock possible + cases libres
+                res.push(
+                    Move{
+                        joueur: joueur == 0,
+                        ancien: pos,
+                        nouveau: (conv_str_to_pos ("C1")),
+                        rock: (false,false),
+                        manger: (conv_str_to_pos ("C1")),
+                        en_passant: [false;8],
+                        promotion:false,
+                        a_rock: 1
+                    }
+                )
+            }
+            else if (p.rock_n).1
+            && !(est_dans_mouv(conv_str_to_pos("F1"),adversaires)) { // rock possible + cases libres
+                res.push(
+                    Move{
+                        joueur: joueur == 0,
+                        ancien: pos,
+                        nouveau: (conv_str_to_pos ("G1")),
+                        rock: (false,false),
+                        manger: (conv_str_to_pos ("G1")),
+                        en_passant: [false;8],
+                        promotion:false,
+                        a_rock: 2
+                    }
+                )
             }
         }
+        else { //
+            if (p.rock_n).0
+            && !(est_dans_mouv(conv_str_to_pos ("D8"),adversaires)) { // rock possible + cases libres
+                res.push(
+                    Move{
+                        joueur: joueur == 0,
+                        ancien: pos,
+                        nouveau: (conv_str_to_pos ("C8")),
+                        rock: (false,false),
+                        manger: (conv_str_to_pos ("C8")),
+                        en_passant: [false;8],
+                        promotion:false,
+                        a_rock: 1
+                    }
+                )
+            }
+            else if (p.rock_n).1
+            && !(est_dans_mouv(conv_str_to_pos("F8"),adversaires)) { // rock possible + cases libres
+                res.push(
+                    Move{
+                        joueur: joueur == 0,
+                        ancien: pos,
+                        nouveau: (conv_str_to_pos ("G8")),
+                        rock: (false,false),
+                        manger: (conv_str_to_pos ("G8")),
+                        en_passant: [false;8],
+                        promotion:false,
+                        a_rock: 2
+                    }
+                )
+            }
         }
     return res;
-}*/
+}
 
 //tests
 pub fn test_couleur_piece(){

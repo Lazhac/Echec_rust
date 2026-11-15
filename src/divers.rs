@@ -1,5 +1,12 @@
 use crate::structures::Plateau;
 
+// Test si pos fait partie des destinations de m_vec
+pub fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
+    for m in m_vec {
+        if pos == m.nouveau {return true;}
+    }
+    false
+}
 // initialise un plateau de début de partie
 pub fn plateau_vide () -> Plateau{
     let mut p: Plateau = Plateau {

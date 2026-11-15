@@ -36,13 +36,6 @@ pub fn afficher_plateau (p: &Plateau){
 }
 
 
-// Test si pos fait partie des destinations de m_vec
-pub fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
-    for m in m_vec {
-        if pos == m.nouveau {return true;}
-    }
-    false
-}
 
 
 // Affiche le plateau p, en marquant les cases destination (nouveau) de deplacements 
@@ -61,7 +54,7 @@ pub fn afficher_mouv (p: &Plateau, deplacements: &Vec<Move>){
         print!("{}| ", 8-i);
         for j in 0..8 {
             let c: char = p.carte[7-i][j];
-            if est_dans_mouv((7-i, j), deplacements) {
+            if divers::est_dans_mouv((7-i, j), deplacements) {
                 if c == ' ' {print!("█ ");}
                 else if c.to_lowercase().to_string() == "t" {print!("🆃 ");}
                 else if c.to_lowercase().to_string() == "c" {print!("🅲 ");}
