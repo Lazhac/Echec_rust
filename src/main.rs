@@ -4,7 +4,7 @@ pub mod divers;
 pub mod mouvements;
 
 
-use crate::{structures::Plateau, structures::Move};
+use crate::structures::{Plateau, Move};
 use crate::mouvements::couleur_piece;
 use crate::affichage::afficher_plateau;
 

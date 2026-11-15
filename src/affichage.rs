@@ -2,6 +2,8 @@ use crate::structures::Plateau;
 use crate::structures::Move;
 
 pub fn afficher_plateau (p: &Plateau){
+    println!("Tour du joueur {}", (p.nb_tour % 2));
+
     print!(" +");
     for _ in 1..18 {
         print!("-");
@@ -35,7 +37,7 @@ pub fn afficher_plateau (p: &Plateau){
 
 
 // Test si pos fait partie des destinations de m_vec
-fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
+pub fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{
     for m in m_vec {
         if pos == m.nouveau {return true;}
     }
@@ -48,6 +50,7 @@ pub fn afficher_mouv (p: &Plateau, deplacements: &Vec<Move>){
     // 🆃🅲🅵🅳🆁 🅿 
     // Il n'y a pas de version minuscule, donc les lettres inversées 
     // montrent toujours les pièces adverses
+    println!("{}", deplacements.len());
     print!(" +");
     for _ in 1..18 {
         print!("-");

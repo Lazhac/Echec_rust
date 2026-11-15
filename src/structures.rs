@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct Plateau {
     pub carte: [[char; 8]; 8], //blanc : minuscule - noir: majuscule
     pub en_passant_b: [bool; 8],
@@ -16,5 +17,7 @@ pub struct Move {
     pub rock: (bool, bool), // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
     pub manger: (usize,usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
     pub en_passant: [bool; 8],
+    pub promotion: bool, // si cela lance une promotion
+    pub a_rock: i32 // 0: pas de rock; 1: rock coté A; 2: rock cote H
 }
 

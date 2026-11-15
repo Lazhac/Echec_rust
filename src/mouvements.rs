@@ -12,13 +12,13 @@ pub static COUPS :LazyLock<HashMap<char,fn(&Plateau,(usize,usize)) ->Vec<Move>>>
             ('f', fou as _),
             ('d', dame as _),
             //('r', roi as _),
-            // ('p', pion as _),
+            ('p', pion as _),
             ('T', tour as _),
             ('C', cavalier as _),
             ('F', fou as _),
             ('D', dame as _),
             // ('R', roi as _),
-            // ('P', pion as _),
+            ('P', pion as _),
         ])
     }
     );
@@ -42,8 +42,8 @@ pub fn mouv (p: &mut Plateau, m: Move){
     p.carte[m.ancien.0][m.ancien.1] = ' ';
 }
 
+//renvoie 0 si c'est une pièce qui appartient au joueur blanc, 1 au joueur noir, 2 sinon
 pub fn couleur_piece(c:char) -> u32 {
-    //renvoie 0 si c'est une pièce qui appartient au joueur blanc, 1 au joueur noir, 2 sinon
     if c == ' '{ //cas d'erreur - il n'y a pas de pion sur la case
         2
     }
@@ -87,7 +87,9 @@ fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                     nouveau: (((pos.0 as isize)+i) as usize, ((pos.1 as isize)+j) as usize),// nouvelle position
                     rock: (true, true),
                     manger: (((pos.0 as isize)+i) as usize, ((pos.1 as isize)+j) as usize), // position du pion mangé (surtout si en passant)
-                    en_passant: [true; 8], //pourquoi en passant à true ?
+                    en_passant: [false; 8], //pourquoi en passant à true ?
+                    promotion: false,
+                    a_rock: 0
                 }
             );
         }
@@ -96,7 +98,6 @@ fn cavalier (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     res
 }
 
-
 // Renvoie l'ensemble des moves possible par le fou en position pos.
 fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2));
@@ -104,7 +105,7 @@ fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
 
     let joueur = p.nb_tour % 2;
 
-    let mut res: Vec<Move> = Vec::with_capacity(8);
+    let mut res: Vec<Move> = Vec::new();
 
     
     for (signe_i, signe_j) in [(1, 1), (1, -1), (-1, 1), (-1, -1)]{    
@@ -119,7 +120,9 @@ fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                             nouveau: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize),// nouvelle position
                             rock: (true, true),
                             manger: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize), // position du pion mangé (surtout si en passant)
-                            en_passant: [true; 8],
+                            en_passant: [false; 8],
+                            promotion: false,
+                            a_rock: 0
                         }
                     );
                     break;
@@ -132,7 +135,9 @@ fn fou (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                             nouveau: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize),// nouvelle position
                             rock: (true, true),
                             manger: (((pos.0 as isize)+(k*signe_i)) as usize, ((pos.1 as isize)+(k*signe_j)) as usize), // position du pion mangé (surtout si en passant)
-                            en_passant: [true; 8],
+                            en_passant: [false; 8],
+                            promotion: false,
+                            a_rock: 0
                         }
                     );
                 }
@@ -147,7 +152,7 @@ fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     assert!(couleur_piece(c) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
     assert!(p.carte[pos.0][pos.1] == 't' || p.carte[pos.0][pos.1] == 'T');
 
-    let configs :[(isize,isize);4] = [(1,0),(0,-1),(-1,0),(0,-1)];
+    let configs :[(isize,isize);4] = [(1,0),(0,1),(-1,0),(0,-1)];
     let mut res: Vec<Move> = Vec::new();
     let mut x:isize;
     let mut y:isize;
@@ -171,16 +176,19 @@ fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
         while dans_carte((x,y)) && (p.carte[x as usize][y as usize] == ' ') { //tant qu'il sagt de cases vides
             res.push (
                     Move {
-                            joueur: (p.nb_tour % 2) == 0,   // true = blanc, false = noir 
-                            ancien: pos, // ancienne position
-                            nouveau: (x as usize,y as usize),// nouvelle position
-                            rock: (true,true), // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
-                            manger: (x as usize,y as usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
-                            en_passant: [false;8],
+                        joueur: (p.nb_tour % 2) == 0,   // true = blanc, false = noir 
+                        ancien: pos, // ancienne position
+                        nouveau: (x as usize,y as usize),// nouvelle position
+                        rock: rock, // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
+                        manger: (x as usize,y as usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
+                        en_passant: [false;8],
+                        promotion: false,
+                        a_rock: 0
                     }
             );
             x = x + i;
             y = y + j;
+        }
         // si on est sortis de la boucle et encore sur le plateau => on a rencontré un pion à manger (coup à ajouter)
         if dans_carte((x,y)) {
             res.push(
@@ -188,15 +196,16 @@ fn tour (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                     joueur: (p.nb_tour % 2) == 0,
                     ancien: pos,
                     nouveau: (x as usize,y as usize),
-                    rock: (true,true),
+                    rock: rock,
                     manger: (x as usize,y as usize),
-                    en_passant: [false;8]
+                    en_passant: [false;8],
+                    promotion: false,
+                    a_rock: 0
                 }
             )
         }
-        }
     }
-    return res;
+    res
 }
 
 fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
@@ -223,10 +232,13 @@ fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                             rock: (true,true), // on mets à false les positions (coté 0 ou 7) qui sont rendu impossible par ce coup
                             manger: (x as usize,y as usize), // position du pion mangé (surtout si en passant). Si rien n'est manger, manger=nouveau
                             en_passant: [false;8],
+                            promotion: false,
+                            a_rock: 0
                     }
             );
             x = x + i;
             y = y + j;
+        }
         // si on est sortis de la boucle et encore sur le plateau => on a rencontré un pion à manger (coup à ajouter)
         if dans_carte((x,y)) {
             res.push(
@@ -236,14 +248,119 @@ fn dame (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                     nouveau: (x as usize,y as usize),
                     rock: (true,true),
                     manger: (x as usize,y as usize),
-                    en_passant: [false;8]
+                    en_passant: [false;8],
+                    promotion: false,
+                    a_rock: 0
                 }
             )
         }
+    }
+    res
+}
+
+// Renvoie l'ensemble des moves possible par le pion en position pos.
+fn pion (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
+    assert!(p.carte[pos.0][pos.1] == 'p' || p.carte[pos.0][pos.1] == 'P');
+    assert!(couleur_piece(p.carte[pos.0][pos.1]) == (p.nb_tour % 2)); //c'est le bon joueur qui joue
+
+    let joueur = p.nb_tour % 2;
+    let direction: isize = -2*(joueur as isize) +1;
+    let mut res: Vec<Move> = Vec::with_capacity(4);
+    println!("{}, {pos:?}, {:?}, {:?}", direction, p.en_passant_b, p.en_passant_n);
+    // Avancer de 1
+    if p.carte[((pos.0 as isize)+direction) as usize][pos.1] == ' ' {
+        // promotion
+        if pos.1 as isize + direction == (7*joueur as isize) {
+            res.push(Move {
+                joueur: joueur == 0,
+                ancien: pos, // ancienne position
+                nouveau: (((pos.0 as isize)+direction) as usize, pos.1),// nouvelle position
+                rock: (true, true),
+                manger: (((pos.0 as isize)+direction) as usize, pos.1), // position du pion mangé (surtout si en passant)
+                en_passant: [false; 8], //pourquoi en passant à true ?
+                promotion: true,
+                a_rock: 0
+                }
+            )
+        } else {
+            res.push(Move {
+                joueur: joueur == 0,
+                ancien: pos, // ancienne position
+                nouveau: (((pos.0 as isize)+direction) as usize, pos.1),// nouvelle position
+                rock: (true, true),
+                manger: (((pos.0 as isize)+direction) as usize, pos.1), // position du pion mangé (surtout si en passant)
+                en_passant: [false; 8], //pourquoi en passant à true ?
+                promotion: false,
+                a_rock: 0
+                }
+            )
         }
     }
-    return res;
+
+    // Avancer de 2
+    if pos.0 == 1+5*joueur as usize && 
+       p.carte[((pos.0 as isize)+direction) as usize][pos.1] == ' ' &&
+       p.carte[((pos.0 as isize)+2*direction) as usize][pos.1] == ' ' 
+    {
+        let mut en_passant = [false; 8];
+        en_passant[pos.1] = true; 
+        res.push(Move {
+            joueur: joueur == 0,
+            ancien: pos, // ancienne position
+            nouveau: (((pos.0 as isize)+2*direction) as usize, pos.1),// nouvelle position
+            rock: (true, true),
+            manger: (((pos.0 as isize)+2*direction) as usize, pos.1), // position du pion mangé (surtout si en passant)
+            en_passant: en_passant,
+            promotion: false,
+            a_rock: 0
+            }
+        )
+    }
+
+    // Manger 
+    for lateral in [-1, 1] {
+        if dans_carte((pos.0 as isize + direction, pos.1 as isize + lateral)) &&
+           couleur_piece(p.carte[(pos.0 as isize + direction) as usize][(pos.1 as isize + lateral) as usize]) == autre_joueur(joueur)
+        {
+            res.push(Move {
+                joueur: joueur == 0,
+                ancien: pos, // ancienne position
+                nouveau: (((pos.0 as isize)+direction) as usize, (pos.1 as isize + lateral) as usize),// nouvelle position
+                rock: (true, true),
+                manger: (((pos.0 as isize)+direction) as usize, (pos.1 as isize + lateral) as usize), // position du pion mangé (surtout si en passant)
+                en_passant: [false; 8],
+                promotion: false,
+                a_rock: 0
+                }
+            )   
+        }
+    }
+
+    // En passant !!! 
+    for lateral in [-1, 1] {
+        if dans_carte((pos.0 as isize + 2*direction, pos.1 as isize + lateral)) &&
+           pos.0 as isize == (4-joueur as isize) && // être sur la rangée compatible avec en passant
+           (if joueur==0 {p.en_passant_b} else {p.en_passant_n})[(pos.1 as isize + lateral) as usize] &&
+           p.carte[(pos.0 as isize + direction) as usize][(pos.1 as isize + lateral) as usize] == ' '
+        {
+            res.push(Move {
+                joueur: joueur == 0,
+                ancien: pos, // ancienne position
+                nouveau: (((pos.0 as isize)+direction) as usize, (pos.1 as isize + lateral) as usize),// nouvelle position
+                rock: (true, true),
+                manger: (((pos.0 as isize)) as usize, (pos.1 as isize + lateral) as usize), // position du pion mangé (surtout si en passant)
+                en_passant: [false; 8],
+                promotion: false,
+                a_rock: 0
+                }
+            )   
+        }
+    }
+
+    res
 }
+
+
 
 //récupère tout les pions de joueur sauf le roi
 fn loc_pions_saufroi(p: &Plateau,joueur :u32) -> Vec<(usize,usize)> { 
