@@ -1,5 +1,6 @@
 use crate::structures::Plateau;
 use crate::structures::Move;
+use crate::divers;
 
 pub fn afficher_plateau (p: &Plateau){
     println!("Tour du joueur {}", (p.nb_tour % 2));

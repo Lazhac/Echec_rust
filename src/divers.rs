@@ -1,4 +1,4 @@
-use crate::structures::Plateau;
+use crate::structures::{Plateau, Move};
 
 // Test si pos fait partie des destinations de m_vec
 pub fn est_dans_mouv (pos: (usize, usize), m_vec: &Vec<Move>) -> bool{

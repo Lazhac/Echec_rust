@@ -1,6 +1,6 @@
 use crate::structures::Plateau;
 use crate::structures::Move;
-use crate::divers::conv_str_to_pos;
+use crate::divers::{conv_str_to_pos, est_dans_mouv};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
@@ -381,15 +381,15 @@ fn loc_pions_saufroi(p: &Plateau,joueur :u32) -> Vec<(usize,usize)> {
  
 fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
     let c = p.carte[pos.0][pos.1];
-    let joueur = p.nb_tour % 2
+    let joueur = p.nb_tour % 2;
     assert!(couleur_piece(c) == (joueur)); //c'est le bon joueur qui joue
     assert!(p.carte[pos.0][pos.1] == 'r' || p.carte[pos.0][pos.1] == 'R');
 
     //recuperation des coups de tout les pions adverses
-    let positions :vec<(usize,usize)> = loc_pions_saufroi(p,autre_joueur(joueur));
-    let adversaires :vec<Move> = Vec::new();
-    for i in 0..position.len() {
-        adversaires.append(COUPS.get(p.carte[positions[i].0][position[i].1]).unwrap()(p,positions[i]))
+    let positions: Vec<(usize,usize)> = loc_pions_saufroi(p,autre_joueur(joueur));
+    let mut adversaires: Vec<Move> = Vec::new();
+    for i in 0..positions.len() {
+        adversaires.append(&mut COUPS.get(&p.carte[positions[i].0][positions[i].1]).unwrap()(p,positions[i]))
     }
 
     let configs :[(isize,isize);8] = [(1,1),(1,-1),(-1,1),(-1,-1),(1,0),(0,1),(-1,0),(0,-1 )];
@@ -411,36 +411,37 @@ fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
                 manger: (x as usize,y as usize),
                 en_passant: [false;8],
                 promotion:false,
+                a_rock:0
                 }
             )
         }
     }
 
         if (p.nb_tour % 2) == 0 { //
-            if (p.rock_n).0
-            && !(est_dans_mouv(conv_str_to_pos ("D1"),adversaires)) { // rock possible + cases libres
+            if (p.rock_n)[0]
+            && !(est_dans_mouv(conv_str_to_pos ("D1".to_string()).unwrap(),&adversaires)) { // rock possible + cases libres
                 res.push(
                     Move{
                         joueur: joueur == 0,
                         ancien: pos,
-                        nouveau: (conv_str_to_pos ("C1")),
+                        nouveau: (conv_str_to_pos ("C1".to_string()).unwrap()),
                         rock: (false,false),
-                        manger: (conv_str_to_pos ("C1")),
+                        manger: (conv_str_to_pos ("C1".to_string()).unwrap()),
                         en_passant: [false;8],
                         promotion:false,
                         a_rock: 1
                     }
                 )
             }
-            else if (p.rock_n).1
-            && !(est_dans_mouv(conv_str_to_pos("F1"),adversaires)) { // rock possible + cases libres
+            else if (p.rock_n)[1]
+            && !(est_dans_mouv(conv_str_to_pos("F1".to_string()).unwrap(),&adversaires)) { // rock possible + cases libres
                 res.push(
                     Move{
                         joueur: joueur == 0,
                         ancien: pos,
-                        nouveau: (conv_str_to_pos ("G1")),
+                        nouveau: (conv_str_to_pos ("G1".to_string()).unwrap()),
                         rock: (false,false),
-                        manger: (conv_str_to_pos ("G1")),
+                        manger: (conv_str_to_pos ("G1".to_string()).unwrap()),
                         en_passant: [false;8],
                         promotion:false,
                         a_rock: 2
@@ -449,30 +450,30 @@ fn roi (p: &Plateau, pos: (usize,usize)) -> Vec<Move> {
             }
         }
         else { //
-            if (p.rock_n).0
-            && !(est_dans_mouv(conv_str_to_pos ("D8"),adversaires)) { // rock possible + cases libres
+            if (p.rock_n)[0]
+            && !(est_dans_mouv(conv_str_to_pos ("D8".to_string()).unwrap(),&adversaires)) { // rock possible + cases libres
                 res.push(
                     Move{
                         joueur: joueur == 0,
                         ancien: pos,
-                        nouveau: (conv_str_to_pos ("C8")),
+                        nouveau: (conv_str_to_pos ("C8".to_string()).unwrap()),
                         rock: (false,false),
-                        manger: (conv_str_to_pos ("C8")),
+                        manger: (conv_str_to_pos ("C8".to_string()).unwrap()),
                         en_passant: [false;8],
                         promotion:false,
                         a_rock: 1
                     }
                 )
             }
-            else if (p.rock_n).1
-            && !(est_dans_mouv(conv_str_to_pos("F8"),adversaires)) { // rock possible + cases libres
+            else if (p.rock_n)[1]
+            && !(est_dans_mouv(conv_str_to_pos("F8".to_string()).unwrap(),&adversaires)) { // rock possible + cases libres
                 res.push(
                     Move{
                         joueur: joueur == 0,
                         ancien: pos,
-                        nouveau: (conv_str_to_pos ("G8")),
+                        nouveau: (conv_str_to_pos ("G8".to_string()).unwrap()),
                         rock: (false,false),
-                        manger: (conv_str_to_pos ("G8")),
+                        manger: (conv_str_to_pos ("G8".to_string()).unwrap()),
                         en_passant: [false;8],
                         promotion:false,
                         a_rock: 2
